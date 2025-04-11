@@ -10,6 +10,7 @@
 :root {
     color-scheme: dark;
     background-color: #783f2e;
+    user-select: none;
 }
 
 body {
