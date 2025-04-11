@@ -1,0 +1,94 @@
+@charset "UTF-8";
+
+/* Buttons: */
+button,
+.button,
+div#footer .button,
+input[type=submit],
+input[type=button],
+select {
+    margin: 1px;
+    padding: 3px;
+    background-color: #035095;
+    border: 1px solid white;
+    border-radius: 3px;
+    color: white;
+}
+
+select option {
+    color: white;
+    background-color: #035095;
+}
+
+button:hover,
+.button:hover,
+div#footer .button:hover,
+input[type=submit]:hover,
+input[type=button]:hover,
+select:hover {
+    margin: 1px;
+    padding: 3px;
+    background-color: #003d73;
+    border: 1px solid black;
+    border-radius: 3px;
+    color: white;
+}
+
+button[disabled],
+.button[disabled],
+div#footer .button[disabled],
+input[type=submit][disabled],
+input[type=button][disabled],
+select[disabled],
+button[disabled]:hover,
+.button[disabled]:hover,
+div#footer .button[disabled]:hover,
+input[type=submit][disabled]:hover,
+input[type=button][disabled]:hover,
+select[disabled]:hover,
+
+button[inert],
+.button[inert],
+div#footer .button[inert],
+input[type=submit][inert],
+input[type=button][inert],
+select[inert],
+button[inert]:hover,
+.button[inert]:hover,
+div#footer .button[inert]:hover,
+input[type=submit][inert]:hover,
+input[type=button][inert]:hover,
+select[inert]:hover {
+    margin: 1px;
+    padding: 3px;
+    background-color: grey;
+    border: 1px solid lightgrey;
+    border-radius: 3px;
+    color: lightgrey;
+}
+
+/* Links: */
+
+a {
+    color: lightblue;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+#footer a {
+    color: blue;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    color: white;
+    text-decoration: underline;
+    background-color: rgb(100, 100, 0);
+}
+
+#footer a:hover {
+    color: white;
+    text-decoration: underline;
+    background-color: rgb(100, 100, 0);
+}

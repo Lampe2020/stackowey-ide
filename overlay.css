@@ -1,0 +1,34 @@
+@charset "UTF-8";
+
+.overlay {
+    z-index: 100;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px) saturate(33%);
+    pointer-events: all;
+}
+
+.overlay-text {
+    color: white;
+    background-color: rgb(100, 100, 0);
+    text-align: center;
+    padding: .8em;
+    border: 1px solid white;
+    border-radius: 4px;
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+fieldset.overlay-text>legend {
+    background-color: rgb(100, 100, 0);
+    padding: .3em;
+    border: 1px solid white;
+    border-radius: 4px;
+}

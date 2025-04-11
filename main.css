@@ -1,0 +1,42 @@
+@charset "UTF-8";
+@import "interactables.css";
+@import "overlay.css";
+@import "noscript.css";
+
+* {
+    font-family: monospace;
+}
+
+:root {
+    color-scheme: dark;
+    background-color: brown;
+}
+
+body {
+    z-index: 3;
+    font-size: 12px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+
+header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+}
+
+main {
+    font-size: 18px;
+}
+
+footer {
+    border-top: 1px solid grey;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
