@@ -15,22 +15,25 @@
 body {
     z-index: 3;
     font-size: 12px;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
 }
 
 header {
+    border-bottom: 1px solid grey;
+    padding-left: 1em;
     position: fixed;
     top: 0px;
     left: 0px;
     right: 0px;
+    height: 64px;
 }
 
 main {
     font-size: 18px;
+    position: fixed;
+    top: 64px;
+    left: 0px;
+    right: 0px;
+    bottom: 20px;
 }
 
 footer {
@@ -39,4 +42,7 @@ footer {
     left: 0px;
     right: 0px;
     bottom: 0px;
+    height: 20px;
+    padding-left: 1em;
+    padding-right: 1em;
 }
