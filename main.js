@@ -36,3 +36,46 @@ document.addEventListener('DOMContentLoaded', () => {
         throw err;
     }
 });
+
+function createTitledPopup(title, text) {
+    const overlay = document.createElement('div');
+    overlay.classList.add('overlay');
+    const popup = document.createElement('fieldset');
+    popup.classList.add('overlay-text');
+    const legend = document.createElement('legend');
+    legend.classList.add('popup-title');
+    legend.innerText = title;
+    const body = document.createElement('div');
+    body.classList.add('popup-body');
+    body.innerText = text;
+    popup.appendChild(legend);
+    popup.appendChild(body);
+    overlay.appendChild(popup);
+    Object.defineProperties(overlay, {
+        titleText: {
+            get: () => {
+                return legend.innerText;
+            },
+            set: (title) => {
+                return legend.innerText = title;
+            }
+        },
+        bodyText: {
+            get: () => {
+                return body.innerText;
+            },
+            set: (text) => {
+                return body.innerText = text;
+            }
+        },
+        bodyHTML: {
+            get: () => {
+                return body.innerHTML;
+            },
+            set: (html) => {
+                return body.innerHTML = html;
+            }
+        }
+    });
+    return overlay;
+}
