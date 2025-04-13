@@ -29,7 +29,29 @@ document.addEventListener('DOMContentLoaded', () => {
         delete infoCloseBtn;
         delete infoOpenBtn;
 
-        throw new Error('The IDE is not implemented yet!');
+        main.style.display = 'flex';
+        main.style.flexDirection = 'row';
+
+        const [editor, status] = [document.createElement('div'), document.createElement('div')];
+        editor.innerText = status.innerText = 'Loading...';
+        [editor.style.flex, status.style.flex] = [2, 1];
+        [status.style.borderLeft, status.style.margin] = ['1px solid grey', 0];
+        [editor.style.padding, status.style.padding] = ['0px', '1em'];
+        // editor.style.backgroundImage = '-moz-element(#editor-grid)';
+
+        main.innerText = '';
+        main.appendChild(editor);
+        main.appendChild(status);
+
+        const chartable = createCharTable(`               
+ As you can    
+ probably see, 
+ this is not   
+ ready yet :)  
+               `);
+        chartable.id = 'editor-grid';
+        editor.innerText = '';
+        editor.appendChild(chartable);
     } catch (err) {
         (document.querySelector('main') || document.body).innerHTML = 'An unhandled error occurred and the IDE crashed!<br><br><details id="error"><summary id="error_summary"></summary><pre id="error_stacktrace"></pre></details>';
         document.getElementById('error_summary').innerText = err.toString();
@@ -79,4 +101,26 @@ function createTitledPopup(title, text) {
         }
     });
     return overlay;
+}
+
+function createCharTable(chars) {
+    //TODO: Create row and column numbers!
+    const table = document.createElement('table');
+    table.classList.add('char-table');
+    const tbody = document.createElement('tbody');
+    if (!chars)
+        return tbody;
+    for (const row of chars.split('\n')) {
+        const tr = document.createElement('tr');
+        tr.classList.add('char-table-row');
+        for (const chr of row.split('')) {
+            const td = document.createElement('td');
+            td.classList.add('char-table-cell');
+            td.innerText = chr;
+            tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
 }

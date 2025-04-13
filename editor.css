@@ -1,0 +1,26 @@
+@charset "UTF-8";
+
+table.char-table,
+table.char-table>tbody {
+    font-family: monospace;
+    background-color: darkred;
+    border-collapse: collapse;
+}
+
+table.char-table>tbody>tr.char-table-row,
+table.char-table>tbody>tr.char-table-row>td.char-table-cell {
+    min-height: 1em;
+    height: 1em;
+    max-height: 1em;
+}
+
+table.char-table>tbody>tr.char-table-row>td.char-table-cell {
+    min-width: 1em;
+    width: 1em;
+    min-width: 1em;
+    border: 1px solid grey;
+    color: grey;
+    background-color: lightgrey;
+    text-align: center;
+    vertical-align: middle;
+}

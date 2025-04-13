@@ -1,7 +1,8 @@
 @charset "UTF-8";
+@import "noscript.css";
 @import "interactables.css";
 @import "overlay.css";
-@import "noscript.css";
+@import "editor.css";
 
 * {
     font-family: monospace;
