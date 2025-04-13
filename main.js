@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         infoOpenBtn.innerText = 'About';
         infoOpenBtn.style.padding = '1em';
         infoOpenBtn.style.flex = 0;
-        infoOpenBtn.addEventListener('click', ()=>{
+        infoOpenBtn.addEventListener('click', () => {
             document.body.appendChild(info);
         });
         document.querySelector('header:has(h1)')?.appendChild(infoOpenBtn);
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         infoOpenBtn.previousElementSibling.style.flex = 1;
         delete infoCloseBtn;
         delete infoOpenBtn;
-        
+
         throw new Error('The IDE is not implemented yet!');
     } catch (err) {
         (document.querySelector('main') || document.body).innerHTML = 'An unhandled error occurred and the IDE crashed!<br><br><details id="error"><summary id="error_summary"></summary><pre id="error_stacktrace"></pre></details>';
