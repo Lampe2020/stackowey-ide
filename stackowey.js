@@ -205,6 +205,7 @@ export class StackoweyInterpreter {
 
     step() {
         if (!this.#halted) {
+            if (!(this.#playfield.length && this.#playfield[0].length)) throw new Error('Gimme nuffin\', get nuffin\'.');
             switch (this.currentCommand) {
                 case '/': {
                     const values = [this.#pop_stack(), this.#pop_stack()];
