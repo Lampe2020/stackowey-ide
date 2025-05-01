@@ -14,6 +14,33 @@ const Direction = Object.freeze({
     UP: 3
 });
 
+const ErrorCode = Object.freeze({
+    E_SUCCESS: 0,
+    E_SYNTAX: 1,
+    E_3D: 2,
+    E_STREAM_R: 3,
+    E_STREAM_W: 4,
+    E_RUNTIME: 5,
+    e_name(code) {
+        for (const [e_name, e_code] of Object.entries(this))
+            if (e_name.startsWith('E_') && e_code===code)
+                return e_name;
+        return 'E_UNKNOWN';
+    },
+    e_code(name) {
+        return (name.startsWith('E_'))?(this[name]||'E_UNKNOWN'):'E_UNKNOWN';
+    }
+});
+
+class StackoweyError extends Error {
+    constructor(e_code, msg) {
+        super(msg);
+        this.e_name = ErrorCode.e_name(e_code);
+        this.e_code = Number(e_code);
+        this.name = `${this.e_name}[${this.e_code}]`;
+    }
+}
+
 if (isNode()) {
     const fs = await import('fs');  // In node ES modules, `await` seems to be possible in the top scope.
     const stdin = (process.platform === 'win32') ? process.stdin.fd : fs.openSync('/dev/tty', 'rs');
@@ -130,7 +157,7 @@ export class StackoweyInterpreter {
         if (stringline.startsWith('#!'))
             this.#shebang = stringline;
         else
-            throw new Error('The shebang line must be a shebang line!');
+            throw new StackoweyError(ErrorCode.E_SYNTAX, 'The shebang line must be a shebang line!');
     }
 
     get sourcecode() {
@@ -141,7 +168,7 @@ export class StackoweyInterpreter {
         const codelines = String(code).split('\n');
         if (codelines[codelines.length - 1].length == 0) codelines.pop();   // Discard the last line if it is empty
         const width = codelines[0]?.length || 0;
-        for (const line of codelines) if (line.length != width) throw new Error('The eastward edge is too rough!');
+        for (const line of codelines) if (line.length != width) throw new StackoweyError(ErrorCode.E_SYNTAX, 'The eastward edge is too rough!');
         this.#playfield = codelines;
         this.reset();
     }
@@ -205,7 +232,7 @@ export class StackoweyInterpreter {
 
     step() {
         if (!this.#halted) {
-            if (!(this.#playfield.length && this.#playfield[0].length)) throw new Error('Gimme nuffin\', get nuffin\'.');
+            if (!(this.#playfield.length && this.#playfield[0].length)) throw new StackoweyError(ErrorCode.E_SYNTAX, 'Gimme nuffin\', get nuffin\'.');
             switch (this.currentCommand) {
                 case '/': {
                     const values = [this.#pop_stack(), this.#pop_stack()];
@@ -324,13 +351,13 @@ export class StackoweyInterpreter {
                     break;
                 }
                 default:
-                    throw new Error('I\'m flat___. However, you should\'ve come better prepared.');
+                    throw new StackoweyError(ErrorCode.E_SYNTAX, 'I\'m flat___. However, you should\'ve come better prepared.');
             }
             // Keep the coordinates inside the source code:
             this.#pos[0] = (this.#pos[0] + this.#playfield.length) % this.#playfield.length;
             this.#pos[1] = (this.#pos[1] + this.#playfield[0].length) % this.#playfield[0].length;
             // Adding the roll-over value above to prevent negatives
-        } else throw new Error('You can\'t get a dead mouse to run!');
+        } else throw new StackoweyError(ErrorCode.E_RUNTIME, 'You can\'t get a dead mouse to run!');
     }
 
     run(steps = Infinity) {
