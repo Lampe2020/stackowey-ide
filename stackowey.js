@@ -56,16 +56,16 @@ export class StackoweyInterpreter {
     #halted = true;
     #inputbuf = [];
     #outputbuf = [];
-    #devlog = [];
+    #debug_info = [];
     #stack = new BigUint64Array(                    // Resizable 64-bit unsigned integer array...
         new ArrayBuffer(8, { maxByteLength: 0xffffffff })   // ...with the biggest supported size...
     );                                              // ...as the Stack
     #shebang = '#!/usr/bin/env -S ./stackowey -d';  // Default shebang line
-    #codegrid = ['9'];                              // Just terminates immediately
-    #cp = [0, 0];                                   // The top left corner
+    #playfield = ['9'];                             // Just terminates immediately
+    #pos = [0, 0];                                  // The top left corner
     #dir = Direction.RIGHT;                         // East
 
-    #push(value = 0n) {
+    #push_stack(value = 0n) {
         this.#stack.buffer.resize(this.#stack.byteLength + this.#stack.BYTES_PER_ELEMENT);
         this.#stack[this.#stack.length - 1] = BigInt(value);
     }
@@ -75,7 +75,7 @@ export class StackoweyInterpreter {
         else
             return BigInt(Math.random() * Number(UINT64_MAX));
     }
-    #pop() {
+    #pop_stack() {
         if (this.#stack.length > 0) {
             const value = this.#read(0)
             this.#stack.buffer.resize(this.#stack.byteLength - this.#stack.BYTES_PER_ELEMENT);
@@ -95,15 +95,15 @@ export class StackoweyInterpreter {
             this.#halted = true;
         }
         for (var i = 0; i < line.length; i++)
-            this.#push(line.charCodeAt(i));
-        this.#push(0);  // The extra 0
+            this.#push_stack(line.charCodeAt(i));
+        this.#push_stack(0);    // The extra 0
     }
     #output() {
-        const char = Number(this.#pop());
-        // Output the character to the console
+        const char = Number(this.#pop_stack());
+        // Output the character to the console:
         if (isNode()) process.stdout.write(String.fromCharCode(char));
         else console.log(String.fromCharCode(char));
-        // Store the character in the output buffer
+        // Store the character in the output buffer:
         if (char === 0x0a)  // LF
             this.#outputbuf.push('');   // Add a new line
         else
@@ -113,13 +113,13 @@ export class StackoweyInterpreter {
                 this.#outputbuf[this.#outputbuf.length - 1] += String.fromCharCode(char);   // Add to the last line
     }
 
-    get devlog() {
-        return this.#devlog.join('\n');
+    get debug_info() {
+        return this.#debug_info.join('\n');
     }
 
     get currentCommand() {
-        //console.debug('Current coords: %d %d', this.#cp[0], this.#cp[1]);
-        return this.#codegrid[this.#cp[0]][this.#cp[1]];
+        //console.debug('Current coords: %d %d', this.#pos[0], this.#pos[1]);
+        return this.#playfield[this.#pos[0]][this.#pos[1]];
     }
 
     get shebang() {
@@ -134,7 +134,7 @@ export class StackoweyInterpreter {
     }
 
     get sourcecode() {
-        return this.#codegrid.join('\n');
+        return this.#playfield.join('\n');
     }
     set sourcecode(code = '9') {
         this.#halted = true;
@@ -142,7 +142,7 @@ export class StackoweyInterpreter {
         if (codelines[codelines.length - 1].length == 0) codelines.pop();   // Discard the last line if it is empty
         const width = codelines[0]?.length || 0;
         for (const line of codelines) if (line.length != width) throw new Error('The eastward edge is too rough!');
-        this.#codegrid = codelines;
+        this.#playfield = codelines;
         this.reset();
     }
 
@@ -161,7 +161,7 @@ export class StackoweyInterpreter {
             if (codelines[i].length < width)
                 codelines[i] += ' '.repeat(width - codelines[i].length);
         }
-        this.#codegrid = codelines;
+        this.#playfield = codelines;
         this.reset();
     }
 
@@ -179,11 +179,11 @@ export class StackoweyInterpreter {
     reset() {
         this.#stack.buffer.resize(8);
         this.#stack[0] = 0o42n;
-        this.#cp = [0, 0];
+        this.#pos = [0, 0];
         this.#dir = Direction.RIGHT;
         this.#inputbuf = [];
         this.#outputbuf = [];
-        this.#devlog = [];
+        this.#debug_info = [];
         this.#halted = false;
     }
 
@@ -207,7 +207,7 @@ export class StackoweyInterpreter {
         if (!this.#halted) {
             switch (this.currentCommand) {
                 case '/': {
-                    const values = [this.#pop(), this.#pop()];
+                    const values = [this.#pop_stack(), this.#pop_stack()];
                     if (values[0] > values[1]) {
                         if (this.#dir == Direction.RIGHT || this.#dir == Direction.LEFT)
                             this.#dir = (this.#dir + 1 + 4) % 4;    // +4 to avoid ever going negative
@@ -219,7 +219,7 @@ export class StackoweyInterpreter {
                     break;
                 }
                 case '\\': {
-                    const values = [this.#pop(), this.#pop()];
+                    const values = [this.#pop_stack(), this.#pop_stack()];
                     if (values[0] < values[1]) {
                         if (this.#dir == Direction.RIGHT || this.#dir == Direction.LEFT)
                             this.#dir = (this.#dir - 1 + 4) % 4;    // +4 to avoid ever going negative
@@ -239,8 +239,8 @@ export class StackoweyInterpreter {
                     break;
                 }
                 case '%': {
-                    this.#cp[0] = Number(this.#pop());
-                    this.#cp[1] = Number(this.#pop());
+                    this.#pos[0] = Number(this.#pop_stack());
+                    this.#pos[1] = Number(this.#pop_stack());
                     break;
                 }
                 case '0':
@@ -251,48 +251,48 @@ export class StackoweyInterpreter {
                 case '5':
                 case '6':
                 case '7': {
-                    this.#push(this.currentCommand);
+                    this.#push_stack(this.currentCommand);
                     break;
                 }
                 case '+': {
-                    this.#push(this.#pop() + this.#pop());
+                    this.#push_stack(this.#pop_stack() + this.#pop_stack());
                     break;
                 }
                 case '_': {
-                    this.#push(~this.#pop());
+                    this.#push_stack(~this.#pop_stack());
                     break;
                 }
                 case '#': {
                     if (!this.#stack.length) break;
-                    const raw_i = Number(this.#pop());
+                    const raw_i = Number(this.#pop_stack());
                     if (raw_i >= this.#stack.length) {
                         // Elements below the stack are random. Swapping with a random element is almost the same as just replacing the top value with a random one.
-                        this.#pop();    // This value gets swapped into the abyss and disappears
-                        this.#push(this.#read(-1)); // Generates a random number and pushes it to the stack
+                        this.#pop_stack();  // This value gets swapped into the abyss and disappears
+                        this.#push_stack(this.#read(-1));   // Generates a random number and pushes it to the stack
                         break;
                     }
                     const i = ((this.#stack.length - 1) - raw_i) % this.#stack.length;  // Choose a position inside the stack
                     const value_i = this.#stack[i];
-                    this.#stack[i] = this.#pop();
-                    this.#push(value_i);
+                    this.#stack[i] = this.#pop_stack();
+                    this.#push_stack(value_i);
                     break;
                 }
                 case '@': {
-                    const raw_i = Number(this.#pop());
+                    const raw_i = Number(this.#pop_stack());
                     if (raw_i >= this.#stack.length) {
-                        this.#push(this.#read(-1)); // Copying an element from below the stack is the same as just pushing a random value
+                        this.#push_stack(this.#read(-1));   // Copying an element from below the stack is the same as just pushing a random value
                     }
                     const i = ((this.#stack.length - 1) - raw_i) % this.#stack.length;  // Choose a position inside the stack
-                    this.#push(this.#stack[i]);
+                    this.#push_stack(this.#stack[i]);
                     break;
                 }
                 case '.': {
-                    this.#pop();
+                    this.#pop_stack();
                     break;
                 }
                 case '8': {
-                    this.#push(this.#cp[0]);
-                    this.#push(this.#cp[1]);
+                    this.#push_stack(this.#pos[0]);
+                    this.#push_stack(this.#pos[1]);
 
                     break;
                 }
@@ -307,27 +307,27 @@ export class StackoweyInterpreter {
             this.#dir = (this.#dir + 4) % 4; // Ensure the direction stays inside the 2D plane
             switch (this.#dir) {
                 case Direction.RIGHT: {
-                    this.#cp[1]++;  // Increment column number
+                    this.#pos[1]++; // Increment column number
                     break;
                 }
                 case Direction.DOWN: {
-                    this.#cp[0]--;  // Decrement line number (Note: playfield is upside-down internally!)
+                    this.#pos[0]--; // Decrement line number (Note: playfield is upside-down internally!)
                     break;
                 }
                 case Direction.LEFT: {
-                    this.#cp[1]--;  // Decrement column number
+                    this.#pos[1]--; // Decrement column number
                     break;
                 }
                 case Direction.UP: {
-                    this.#cp[0]++;  // Increment line number (Note: playfield is upside-down internally!)
+                    this.#pos[0]++; // Increment line number (Note: playfield is upside-down internally!)
                     break;
                 }
                 default:
                     throw new Error('I\'m flat___. However, you should\'ve come better prepared.');
             }
             // Keep the coordinates inside the source code:
-            this.#cp[0] = (this.#cp[0] + this.#codegrid.length) % this.#codegrid.length;
-            this.#cp[1] = (this.#cp[1] + this.#codegrid[0].length) % this.#codegrid[0].length;
+            this.#pos[0] = (this.#pos[0] + this.#playfield.length) % this.#playfield.length;
+            this.#pos[1] = (this.#pos[1] + this.#playfield[0].length) % this.#playfield[0].length;
             // Adding the roll-over value above to prevent negatives
         } else throw new Error('You can\'t get a dead mouse to run!');
     }
@@ -338,7 +338,7 @@ export class StackoweyInterpreter {
             for (stepCount = 0; (stepCount <= steps && !this.#halted); stepCount++)
                 this.step();
         } catch (err) {
-            console.debug(`Stackowey has crashed after being stepped ${stepCount} times!\n\n---------- Dev log: ----------\n${this.devlog}\n\n---------- Error: ----------\n`, err);
+            console.debug(`Stackowey has crashed after being stepped ${stepCount} times!\n\n---------- Dev log: ----------\n${this.debug_info}\n\n---------- Error: ----------\n`, err);
         }
     }
 }
