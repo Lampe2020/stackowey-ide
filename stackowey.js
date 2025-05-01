@@ -51,7 +51,7 @@ if (isNode()) {
 }
 
 export class StackoweyInterpreter {
-    #interactiveInputFunc = prompt;
+    #interactiveInputFunc = ((isNode()) ? (() => prompt()) : (() => prompt('Stackowey needs your input: ')));
     #inputIsInteractive = false;
     #halted = true;
     #inputbuf = [];
@@ -88,7 +88,7 @@ export class StackoweyInterpreter {
         // Consume the input buffer first; if that is empty, take user input; if that is impossible, halt.
         var line = '';
         if (this.#inputbuf.length) {
-            line = this.#inputbuf.splice(0, 1); // Return the first line from the input buffer
+            line = this.#inputbuf.splice(0, 1)[0];  // Return the first line from the input buffer
         } else if (this.#inputIsInteractive) {
             line = this.#interactiveInputFunc();
         } else {
@@ -99,15 +99,18 @@ export class StackoweyInterpreter {
         this.#push(0);  // The extra 0
     }
     #output() {
-        const char = this.#pop();
+        const char = Number(this.#pop());
         // Output the character to the console
-        if (isNode) process.stdout.write(String.fromCharCode(char));
+        if (isNode()) process.stdout.write(String.fromCharCode(char));
         else console.log(String.fromCharCode(char));
         // Store the character in the output buffer
         if (char === 0x0a)  // LF
             this.#outputbuf.push('');   // Add a new line
         else
-            this.#outputbuf[this.#outputbuf.length - 1] += String.fromCharCode(char);
+            if (!this.#outputbuf.length)
+                this.#outputbuf.push(String.fromCharCode(char));    // Add the first line
+            else
+                this.#outputbuf[this.#outputbuf.length - 1] += String.fromCharCode(char);   // Add to the last line
     }
 
     get devlog() {
@@ -115,6 +118,7 @@ export class StackoweyInterpreter {
     }
 
     get currentCommand() {
+        //console.debug('Current coords: %d %d', this.#cp[0], this.#cp[1]);
         return this.#codegrid[this.#cp[0]][this.#cp[1]];
     }
 
@@ -135,7 +139,7 @@ export class StackoweyInterpreter {
     set sourcecode(code = '9') {
         this.#halted = true;
         const codelines = String(code).split('\n');
-        if (codelines[codelines.length - 1].length == 0) codelines.pop(); // Discard the last line if it is empty
+        if (codelines[codelines.length - 1].length == 0) codelines.pop();   // Discard the last line if it is empty
         const width = codelines[0]?.length || 0;
         for (const line of codelines) if (line.length != width) throw new Error('The eastward edge is too rough!');
         this.#codegrid = codelines;
@@ -178,6 +182,8 @@ export class StackoweyInterpreter {
         this.#cp = [0, 0];
         this.#dir = Direction.RIGHT;
         this.#inputbuf = [];
+        this.#outputbuf = [];
+        this.#devlog = [];
         this.#halted = false;
     }
 
@@ -187,7 +193,7 @@ export class StackoweyInterpreter {
         }
         if (interactiveInput)
             this.#inputIsInteractive = true;
-
+        console.debug('interactiveInput:', interactiveInput, '\nthis.#interactiveInputFunc:', this.#interactiveInputFunc, '\nthis.#inputIsInteractive:', this.#inputIsInteractive);
         const codelines = String(code).split('\n');
         if (codelines[0].startsWith('#!')) {
             this.#shebang = codelines[0];
@@ -201,83 +207,97 @@ export class StackoweyInterpreter {
         if (!this.#halted) {
             switch (this.currentCommand) {
                 case '/': {
-                    //TODO: Implement this!
+                    const values = [this.#pop(), this.#pop()];
+                    if (values[0] > values[1]) {
+                        if (this.#dir == Direction.RIGHT || this.#dir == Direction.LEFT)
+                            this.#dir = (this.#dir + 1 + 4) % 4;    // +4 to avoid ever going negative
+                        else
+                            this.#dir = (this.#dir - 1 + 4) % 4;    // +4 to avoid ever going negative
+                    } else {
+                        // Ignore this potential turn
+                    }
                     break;
                 }
                 case '\\': {
-                    //TODO: Implement this!
+                    const values = [this.#pop(), this.#pop()];
+                    if (values[0] < values[1]) {
+                        if (this.#dir == Direction.RIGHT || this.#dir == Direction.LEFT)
+                            this.#dir = (this.#dir - 1 + 4) % 4;    // +4 to avoid ever going negative
+                        else
+                            this.#dir = (this.#dir + 1 + 4) % 4;    // +4 to avoid ever going negative
+                    } else {
+                        // Ignore this potential turn
+                    }
                     break;
                 }
                 case '?': {
-                    //TODO: Implement this!
+                    this.#getInput();
                     break;
                 }
                 case '!': {
-                    //TODO: Implement this!
+                    this.#output();
                     break;
                 }
                 case '%': {
-                    //TODO: Implement this!
+                    this.#cp[0] = Number(this.#pop());
+                    this.#cp[1] = Number(this.#pop());
                     break;
                 }
-                case '0': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '1': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '2': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '3': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '4': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '5': {
-                    //TODO: Implement this!
-                    break;
-                }
-                case '6': {
-                    //TODO: Implement this!
-                    break;
-                }
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
                 case '7': {
-                    //TODO: Implement this!
+                    this.#push(this.currentCommand);
                     break;
                 }
                 case '+': {
-                    //TODO: Implement this!
+                    this.#push(this.#pop() + this.#pop());
                     break;
                 }
                 case '_': {
-                    //TODO: Implement this!
+                    this.#push(~this.#pop());
                     break;
                 }
                 case '#': {
-                    //TODO: Implement this!
+                    if (!this.#stack.length) break;
+                    const raw_i = Number(this.#pop());
+                    if (raw_i >= this.#stack.length) {
+                        // Elements below the stack are random. Swapping with a random element is almost the same as just replacing the top value with a random one.
+                        this.#pop();    // This value gets swapped into the abyss and disappears
+                        this.#push(this.#read(-1)); // Generates a random number and pushes it to the stack
+                        break;
+                    }
+                    const i = ((this.#stack.length - 1) - raw_i) % this.#stack.length;  // Choose a position inside the stack
+                    const value_i = this.#stack[i];
+                    this.#stack[i] = this.#pop();
+                    this.#push(value_i);
                     break;
                 }
                 case '@': {
-                    //TODO: Implement this!
+                    const raw_i = Number(this.#pop());
+                    if (raw_i >= this.#stack.length) {
+                        this.#push(this.#read(-1)); // Copying an element from below the stack is the same as just pushing a random value
+                    }
+                    const i = ((this.#stack.length - 1) - raw_i) % this.#stack.length;  // Choose a position inside the stack
+                    this.#push(this.#stack[i]);
                     break;
                 }
                 case '.': {
-                    //TODO: Implement this!
+                    this.#pop();
                     break;
                 }
                 case '8': {
-                    //TODO: Implement this!
+                    this.#push(this.#cp[0]);
+                    this.#push(this.#cp[1]);
+
                     break;
                 }
                 case '9': {
-                    //TODO: Implement this!
+                    this.#halted = true;
                     break;
                 }
                 default: {
@@ -285,13 +305,13 @@ export class StackoweyInterpreter {
                 }
             }
             this.#dir = (this.#dir + 4) % 4; // Ensure the direction stays inside the 2D plane
-            switch(this.#dir) {
+            switch (this.#dir) {
                 case Direction.RIGHT: {
                     this.#cp[1]++;  // Increment column number
                     break;
                 }
                 case Direction.DOWN: {
-                    this.#cp[0]++;  // Increment line number
+                    this.#cp[0]--;  // Decrement line number (Note: playfield is upside-down internally!)
                     break;
                 }
                 case Direction.LEFT: {
@@ -299,17 +319,26 @@ export class StackoweyInterpreter {
                     break;
                 }
                 case Direction.UP: {
-                    this.#cp[0]--;  // Decrement line number
+                    this.#cp[0]++;  // Increment line number (Note: playfield is upside-down internally!)
                     break;
                 }
                 default:
                     throw new Error('I\'m flat___. However, you should\'ve come better prepared.');
             }
+            // Keep the coordinates inside the source code:
+            this.#cp[0] = (this.#cp[0] + this.#codegrid.length) % this.#codegrid.length;
+            this.#cp[1] = (this.#cp[1] + this.#codegrid[0].length) % this.#codegrid[0].length;
+            // Adding the roll-over value above to prevent negatives
         } else throw new Error('You can\'t get a dead mouse to run!');
     }
 
     run(steps = Infinity) {
-        for (var stepCount = 0; (stepCount <= steps && !this.#halted); stepCount++)
-            this.step();
+        var stepCount;
+        try {
+            for (stepCount = 0; (stepCount <= steps && !this.#halted); stepCount++)
+                this.step();
+        } catch (err) {
+            console.debug(`Stackowey has crashed after being stepped ${stepCount} times!\n\n---------- Dev log: ----------\n${this.devlog}\n\n---------- Error: ----------\n`, err);
+        }
     }
 }
