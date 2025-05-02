@@ -23,7 +23,7 @@ const ErrorCode = Object.freeze({
     E_RUNTIME: 5,
     e_name(code) {
         for (const [e_name, e_code] of Object.entries(this))
-            if (e_name.startsWith('E_') && e_code===code)
+            if (e_name.startsWith('E_') && e_code === code)
                 return e_name;
         return 'E_UNKNOWN';
     },
