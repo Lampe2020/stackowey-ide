@@ -318,6 +318,9 @@ export class StackoweyInterpreter {
                     this.#pop_stack();
                     break;
                 }
+                case '=' {
+                    this.#push_stack(this.#stack.length);
+                }
                 case '8': {
                     this.#push_stack(this.#pos[0]);
                     this.#push_stack(this.#pos[1]);
