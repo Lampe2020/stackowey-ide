@@ -28,7 +28,7 @@ const ErrorCode = Object.freeze({
         return 'E_UNKNOWN';
     },
     e_code(name) {
-        return (name.startsWith('E_'))?(this[name]||'E_UNKNOWN'):'E_UNKNOWN';
+        return (name.startsWith('E_')) ? (this[name] || -1) : -1;
     }
 });
 
