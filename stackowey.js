@@ -314,8 +314,9 @@ export class StackoweyInterpreter {
                     this.#push_stack(this.#stack[i]);
                     break;
                 }
-                case '.': {
-                    this.#pop_stack();
+                case '^': {
+                    const [a, b] = [this.#pop_stack(), this.#pop_stack()];
+                    this.#push_stack(a^b);
                     break;
                 }
                 case '=' {
